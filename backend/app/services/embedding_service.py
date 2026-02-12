@@ -2,8 +2,13 @@ from huggingface_hub import InferenceClient
 import numpy as np
 from ..config import HF_API_KEY
 
-# Initialize HuggingFace Inference Client
-client = InferenceClient(token=HF_API_KEY)
+# Initialize HuggingFace Inference Client with new router endpoint
+# Old endpoint (api-inference.huggingface.co) is deprecated
+# New endpoint uses router.huggingface.co
+client = InferenceClient(
+    token=HF_API_KEY,
+    base_url="https://router.huggingface.co"  # Updated to new endpoint
+)
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 def get_embedding(text: str, max_retries: int = 3):

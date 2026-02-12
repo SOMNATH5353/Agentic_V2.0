@@ -14,7 +14,7 @@ python-dotenv==1.0.0
 # AI & ML
 requests==2.31.0
 numpy==1.26.3
-huggingface-hub==0.20.3
+huggingface-hub==0.23.0  # Updated for new router endpoint support
 
 # PDF Processing
 PyPDF2==3.0.1
