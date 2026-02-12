@@ -198,8 +198,7 @@ class InferenceEngine:
     
     def __init__(self):
         self.hf_api_key = HF_API_KEY
-        # Updated to new HuggingFace router endpoint (old api-inference.huggingface.co is deprecated)
-        self.ner_model_url = "https://router.huggingface.co/models/dslim/bert-base-NER"
+        self.ner_model_url = "https://api-inference.huggingface.co/models/dslim/bert-base-NER"
         
     def extract_skills(self, text: str) -> Dict[str, List[str]]:
         """
