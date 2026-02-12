@@ -302,14 +302,15 @@ Query: status_filter: string (optional)
 
 ### 4.1 Submit Application
 **Method**: `POST`  
-**Endpoint**: `/apply/{job_id}`  
+**Endpoint**: `/apply/{company_id}`  
 **Description**: Submit job application with resume PDF
 
 **Input**:
 ```
-Path: job_id: integer (required)
+Path: company_id: integer (required)
 
 Multipart Form:
+job_id: integer (required) - Must belong to the specified company
 name: string (required)
 email: string (required)
 mobile: string (required)
@@ -337,6 +338,25 @@ resume_pdf: file (required, .pdf only)
   "pages_parsed": 2,
   "skills_detected": 12
 }
+```
+
+**Python Example**:
+```python
+import requests
+
+with open("resume.pdf", "rb") as f:
+    response = requests.post(
+        "https://agentic-v2-0.onrender.com/apply/1",  # company_id = 1
+        data={
+            "job_id": 5,  # Must belong to company 1
+            "name": "Arjun Malhotra",
+            "email": "arjun@example.com",
+            "mobile": "1234567890",
+            "experience": 2
+        },
+        files={"resume_pdf": f}
+    )
+print(response.json())
 ```
 
 ### 4.2 Get Application Details
@@ -936,7 +956,7 @@ candidate_id: integer (required)
 | Root & Health | 2 | `/`, `/health` |
 | Company | 1 | `POST /company/` |
 | Job | 5 | `POST /job/create-with-company` ⭐, `POST /job/`, `GET /job/{id}`, `GET /job/`, `GET /job/{company_id}/applications` |
-| Application | 4 | `POST /apply/{job_id}`, `GET /apply/{id}`, `GET /apply/{id}/history`, `GET /apply/` |
+| Application | 4 | `POST /apply/{company_id}`, `GET /apply/{id}`, `GET /apply/{id}/history`, `GET /apply/` |
 | Candidate | 5 | `GET /candidate/{id}`, `GET /candidate/{id}/applications`, `GET /candidate/{id}/history`, `GET /candidate/search/by-email`, `GET /candidate/` |
 | Analytics | 7 | XAI, Skill Gap, Skill Graph, Rankings, Top Candidates, Statistics, Candidate Applications |
 

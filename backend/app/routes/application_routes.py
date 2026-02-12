@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..dependencies import get_db
 from ..models.candidate import Candidate
 from ..models.job import Job
+from ..models.company import Company
 from ..models.application import Application
 from ..services.embedding_service import get_embedding
 from ..services.resume_parser_agent import parse_resume_pdf
@@ -12,9 +13,10 @@ from ..core.pipeline import run_pipeline, get_application_details
 
 router = APIRouter(prefix="/apply", tags=["Application"])
 
-@router.post("/{job_id}")
+@router.post("/{company_id}")
 async def apply(
-    job_id: int,
+    company_id: int,
+    job_id: int = Form(...),
     name: str = Form(...),
     email: str = Form(...),
     mobile: str = Form(...),
@@ -26,16 +28,28 @@ async def apply(
 ):
     """
     Submit job application by uploading resume as PDF
+    Path uses company_id for consistency, job_id specified in form data
     """
     # Validate PDF file
     if not resume_pdf.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
     
-    # Get job details first
+    # Verify company exists
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Get job details and validate it belongs to the company
     job = db.query(Job).filter(Job.id == job_id).first()
     
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+    
+    if job.company_id != company_id:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Job ID {job_id} does not belong to Company ID {company_id}"
+        )
     
     # Check for duplicate email
     existing_candidate = db.query(Candidate).filter(Candidate.email == email).first()
