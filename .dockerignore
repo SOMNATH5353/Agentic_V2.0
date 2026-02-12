@@ -1,0 +1,71 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Environment variables (IMPORTANT!)
+.env
+.env.local
+.env.production
+!.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite3
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Build outputs
+build/
+dist/
+*.egg-info/
+
+# Documentation builds
+docs/_build/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+.dockerignore
+
+# Render
+.render/
+
+# Large files (if any)
+*.pdf
+# Remove above line if you need to include sample PDFs

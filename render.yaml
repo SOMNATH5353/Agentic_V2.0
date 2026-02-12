@@ -2,16 +2,12 @@ services:
   # FastAPI Backend Service
   - type: web
     name: agentic-hiring-backend
-    runtime: python
+    runtime: docker
     region: singapore  # Change to your preferred region
-    plan: starter  # Free tier, upgrade to 'starter' ($7/mo) or higher for production
-    branch: main  # Change if using different branch
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free  # Free tier, upgrade to 'starter' ($7/mo) or higher for production
+    branch: main  # Will use main branch from GitHub
+    dockerfilePath: ./Dockerfile
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
       - key: DATABASE_URL
         fromDatabase:
           name: agentic-hiring-db
@@ -19,7 +15,7 @@ services:
       - key: HF_API_KEY
         sync: false  # Must be set manually in Render dashboard
       - key: SIMILARITY_THRESHOLD
-        value: 0.90
+        value: "0.90"
       - key: ENVIRONMENT
         value: production
       - key: LOG_LEVEL
@@ -27,10 +23,10 @@ services:
     healthCheckPath: /health
     autoDeploy: true
 
-  # PostgreSQL Database
 databases:
+  # PostgreSQL Database
   - name: agentic-hiring-db
     databaseName: agentic_hiring
     region: singapore  # Same region as web service for lower latency
-    plan: starter  # Free tier, upgrade for production
+    plan: free  # Free tier, upgrade for production
     ipAllowList: []  # Empty means accessible from anywhere
