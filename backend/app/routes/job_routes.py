@@ -224,56 +224,82 @@ def get_job(job_id: int, db: Session = Depends(get_db)):
     }
 
 
-@router.get("/{job_id}/applications")
-def get_job_applications(
-    job_id: int,
+@router.get("/{company_id}/applications")
+def get_company_applications(
+    company_id: int,
     status_filter: str = None,
     db: Session = Depends(get_db)
 ):
-    """Get all applications for a specific job"""
-    job = db.query(Job).filter(Job.id == job_id).first()
+    """Get all applications for all jobs of a specific company"""
+    # Verify company exists
+    company = db.query(Company).filter(Company.id == company_id).first()
     
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
     
-    query = db.query(Application).filter(Application.job_id == job_id)
+    # Get all jobs for this company
+    jobs = db.query(Job).filter(Job.company_id == company_id).all()
+    
+    if not jobs:
+        return {
+            "company": {
+                "id": company.id,
+                "name": company.name
+            },
+            "total_applications": 0,
+            "total_jobs": 0,
+            "statistics": {
+                "fast_track": 0,
+                "selected": 0,
+                "hire_pooled": 0,
+                "rejected": 0,
+                "review_required": 0
+            },
+            "applications": []
+        }
+    
+    # Get all job IDs for this company
+    job_ids = [job.id for job in jobs]
+    
+    # Query applications for all jobs of this company
+    query = db.query(Application).filter(Application.job_id.in_(job_ids))
     
     if status_filter:
         query = query.filter(Application.decision == status_filter)
     
     applications = query.all()
     
-    # Statistics
+    # Statistics across all jobs
     stats = {
         "fast_track": db.query(Application).filter(
-            Application.job_id == job_id,
+            Application.job_id.in_(job_ids),
             Application.decision == "Fast-Track Selected"
         ).count(),
         "selected": db.query(Application).filter(
-            Application.job_id == job_id,
+            Application.job_id.in_(job_ids),
             Application.decision == "Selected"
         ).count(),
         "hire_pooled": db.query(Application).filter(
-            Application.job_id == job_id,
+            Application.job_id.in_(job_ids),
             Application.decision == "Hire-Pooled"
         ).count(),
         "rejected": db.query(Application).filter(
-            Application.job_id == job_id,
+            Application.job_id.in_(job_ids),
             Application.decision == "Rejected"
         ).count(),
         "review_required": db.query(Application).filter(
-            Application.job_id == job_id,
+            Application.job_id.in_(job_ids),
             Application.decision == "Review Required"
         ).count(),
     }
     
     return {
-        "job": {
-            "id": job.id,
-            "role": job.role,
-            "company_id": job.company_id
+        "company": {
+            "id": company.id,
+            "name": company.name
         },
         "total_applications": len(applications),
+        "total_jobs": len(jobs),
         "statistics": stats,
         "applications": applications
     }

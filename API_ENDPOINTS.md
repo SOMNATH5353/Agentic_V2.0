@@ -265,26 +265,26 @@ limit: integer (optional, default: 100)
 }
 ```
 
-### 3.5 Get Job Applications
+### 3.5 Get Company Applications
 **Method**: `GET`  
-**Endpoint**: `/job/{job_id}/applications`  
-**Description**: Get all applications for a specific job
+**Endpoint**: `/job/{company_id}/applications`  
+**Description**: Get all applications across all jobs for a specific company
 
 **Input**:
 ```
-Path: job_id: integer (required)
+Path: company_id: integer (required)
 Query: status_filter: string (optional)
 ```
 
 **Output**:
 ```json
 {
-  "job": {
+  "company": {
     "id": 1,
-    "role": "Python Developer",
-    "company_id": 1
+    "name": "TechCorp"
   },
   "total_applications": 25,
+  "total_jobs": 3,
   "statistics": {
     "fast_track": 5,
     "selected": 8,
@@ -935,7 +935,7 @@ candidate_id: integer (required)
 |----------|-------|-----------|
 | Root & Health | 2 | `/`, `/health` |
 | Company | 1 | `POST /company/` |
-| Job | 5 | `POST /job/create-with-company` ⭐, `POST /job/`, `GET /job/{id}`, `GET /job/`, `GET /job/{id}/applications` |
+| Job | 5 | `POST /job/create-with-company` ⭐, `POST /job/`, `GET /job/{id}`, `GET /job/`, `GET /job/{company_id}/applications` |
 | Application | 4 | `POST /apply/{job_id}`, `GET /apply/{id}`, `GET /apply/{id}/history`, `GET /apply/` |
 | Candidate | 5 | `GET /candidate/{id}`, `GET /candidate/{id}/applications`, `GET /candidate/{id}/history`, `GET /candidate/search/by-email`, `GET /candidate/` |
 | Analytics | 7 | XAI, Skill Gap, Skill Graph, Rankings, Top Candidates, Statistics, Candidate Applications |
