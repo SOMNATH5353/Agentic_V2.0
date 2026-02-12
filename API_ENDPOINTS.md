@@ -945,11 +945,121 @@ candidate_id: integer (required)
 }
 ```
 
+### 6.8 Get Candidates Dashboard
+**Method**: `GET`  
+**Endpoint**: `/analytics/candidates/dashboard`  
+**Description**: Comprehensive candidates dashboard with all details, statistics, and tier classification
+
+**Input** (Query Parameters):
+```
+tier_filter: string (optional) - Filter by tier: Excellent/Good/Average/Poor
+status_filter: string (optional) - Filter by status: Selected/Rejected/Pending
+skip: integer (optional, default: 0)
+limit: integer (optional, default: 100)
+```
+
+**Output**:
+```json
+{
+  "statistics": {
+    "total_candidates": 50,
+    "by_status": {
+      "selected": 20,
+      "rejected": 15,
+      "pending": 15
+    },
+    "by_tier": {
+      "excellent": 8,
+      "good": 18,
+      "average": 14,
+      "poor": 10
+    },
+    "by_decision": {
+      "fast_track": 5,
+      "selected": 15,
+      "hire_pooled": 15,
+      "rejected": 15,
+      "review_required": 0
+    },
+    "average_score": 0.68
+  },
+  "filters_applied": {
+    "tier_filter": null,
+    "status_filter": null
+  },
+  "pagination": {
+    "total": 50,
+    "showing": 50,
+    "skip": 0,
+    "limit": 100
+  },
+  "candidates": [
+    {
+      "candidate_id": 42,
+      "candidate_name": "Arjun Malhotra",
+      "email": "arjun@example.com",
+      "mobile": "1234567890",
+      "experience": 3,
+      "total_applications": 2,
+      "best_application": {
+        "application_id": 101,
+        "job_role": "Python Developer",
+        "company_name": "TechCorp",
+        "company_id": 1,
+        "applied_date": "2026-02-12T10:00:00"
+      },
+      "scores": {
+        "composite_score": 0.89,
+        "percentage": "89.0%",
+        "rfs": 0.90,
+        "dcs": 0.85,
+        "elc": 1.0
+      },
+      "decision": "Fast-Track Selected",
+      "status": "Selected",
+      "tier": "Excellent",
+      "rank": 1,
+      "fraud_flag": false
+    }
+  ]
+}
+```
+
+**Tier Classification**:
+- **Excellent**: Score ≥ 0.85 (85%)
+- **Good**: Score ≥ 0.70 (70%)
+- **Average**: Score ≥ 0.50 (50%)
+- **Poor**: Score < 0.50 (50%)
+
+**Python Example**:
+```python
+import requests
+
+# Get all candidates
+response = requests.get(
+    "https://agentic-v2-0.onrender.com/analytics/candidates/dashboard"
+)
+
+# Filter by tier
+response = requests.get(
+    "https://agentic-v2-0.onrender.com/analytics/candidates/dashboard",
+    params={"tier_filter": "Excellent"}
+)
+
+# Filter by status
+response = requests.get(
+    "https://agentic-v2-0.onrender.com/analytics/candidates/dashboard",
+    params={"status_filter": "Selected", "limit": 20}
+)
+
+print(response.json())
+```
+
 ---
 
 ## Summary by Category
 
-### Total Endpoints: 29
+### Total Endpoints: 30
 
 | Category | Count | Endpoints |
 |----------|-------|-----------|
@@ -958,7 +1068,7 @@ candidate_id: integer (required)
 | Job | 5 | `POST /job/create-with-company` ⭐, `POST /job/`, `GET /job/{id}`, `GET /job/`, `GET /job/{company_id}/applications` |
 | Application | 4 | `POST /apply/{company_id}`, `GET /apply/{id}`, `GET /apply/{id}/history`, `GET /apply/` |
 | Candidate | 5 | `GET /candidate/{id}`, `GET /candidate/{id}/applications`, `GET /candidate/{id}/history`, `GET /candidate/search/by-email`, `GET /candidate/` |
-| Analytics | 7 | XAI, Skill Gap, Skill Graph, Rankings, Top Candidates, Statistics, Candidate Applications |
+| Analytics | 8 | XAI, Skill Gap, Skill Graph, Rankings, Top Candidates, Statistics, Candidate Applications, **Candidates Dashboard** ⭐ |
 
 ---
 

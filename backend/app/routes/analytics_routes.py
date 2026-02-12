@@ -363,3 +363,155 @@ def get_candidate_applications(candidate_id: int, db: Session = Depends(get_db))
         "total_applications": len(applications_data),
         "applications": applications_data
     }
+
+
+@router.get("/candidates/dashboard")
+def get_candidates_dashboard(
+    skip: int = 0,
+    limit: int = 100,
+    tier_filter: str = None,
+    status_filter: str = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Get comprehensive candidates dashboard with all details
+    
+    Returns: total candidates, statistics, and detailed candidate information
+    including tier classification, applications, scores, and decisions
+    
+    Query Parameters:
+    - tier_filter: Filter by tier (Excellent/Good/Average/Poor)
+    - status_filter: Filter by status (Selected/Rejected/Pending)
+    - skip: Pagination offset
+    - limit: Maximum results (default 100)
+    """
+    
+    def get_tier(score: float) -> str:
+        """Classify candidate into tier based on composite score"""
+        if score >= 0.85:
+            return "Excellent"
+        elif score >= 0.70:
+            return "Good"
+        elif score >= 0.50:
+            return "Average"
+        else:
+            return "Poor"
+    
+    def get_status(decision: str) -> str:
+        """Convert decision to status"""
+        if decision in ["Fast-Track Selected", "Selected"]:
+            return "Selected"
+        elif decision == "Rejected":
+            return "Rejected"
+        else:
+            return "Pending"
+    
+    # Get all candidates with their applications
+    candidates = db.query(Candidate).all()
+    
+    # Build comprehensive candidate data
+    candidates_data = []
+    
+    for candidate in candidates:
+        # Get all applications for this candidate
+        applications = db.query(Application).filter(
+            Application.candidate_id == candidate.id
+        ).all()
+        
+        if not applications:
+            continue  # Skip candidates with no applications
+        
+        # Get best application (highest score)
+        best_app = max(applications, key=lambda x: x.composite_score)
+        
+        # Get job and company details
+        job = db.query(Job).filter(Job.id == best_app.job_id).first()
+        company = db.query(Company).filter(Company.id == job.company_id).first() if job else None
+        
+        # Calculate tier and status
+        tier = get_tier(best_app.composite_score)
+        status = get_status(best_app.decision)
+        
+        # Build candidate entry
+        candidate_entry = {
+            "candidate_id": candidate.id,
+            "candidate_name": candidate.name,
+            "email": candidate.email,
+            "mobile": candidate.mobile,
+            "experience": candidate.experience,
+            "total_applications": len(applications),
+            "best_application": {
+                "application_id": best_app.id,
+                "job_role": job.role if job else "Unknown",
+                "company_name": company.name if company else "Unknown",
+                "company_id": company.id if company else None,
+                "applied_date": best_app.created_at.isoformat()
+            },
+            "scores": {
+                "composite_score": round(best_app.composite_score, 2),
+                "percentage": f"{best_app.composite_score * 100:.1f}%",
+                "rfs": round(best_app.rfs, 2),
+                "dcs": round(best_app.dcs, 2),
+                "elc": round(best_app.elc, 2)
+            },
+            "decision": best_app.decision,
+            "status": status,
+            "tier": tier,
+            "rank": best_app.rank,
+            "fraud_flag": best_app.fraud_flag
+        }
+        
+        # Apply filters
+        if tier_filter and tier != tier_filter:
+            continue
+        if status_filter and status != status_filter:
+            continue
+        
+        candidates_data.append(candidate_entry)
+    
+    # Sort by composite score (highest first)
+    candidates_data.sort(key=lambda x: x["scores"]["composite_score"], reverse=True)
+    
+    # Calculate statistics
+    total_candidates = len(candidates_data)
+    
+    stats = {
+        "total_candidates": total_candidates,
+        "by_status": {
+            "selected": len([c for c in candidates_data if c["status"] == "Selected"]),
+            "rejected": len([c for c in candidates_data if c["status"] == "Rejected"]),
+            "pending": len([c for c in candidates_data if c["status"] == "Pending"])
+        },
+        "by_tier": {
+            "excellent": len([c for c in candidates_data if c["tier"] == "Excellent"]),
+            "good": len([c for c in candidates_data if c["tier"] == "Good"]),
+            "average": len([c for c in candidates_data if c["tier"] == "Average"]),
+            "poor": len([c for c in candidates_data if c["tier"] == "Poor"])
+        },
+        "by_decision": {
+            "fast_track": len([c for c in candidates_data if c["decision"] == "Fast-Track Selected"]),
+            "selected": len([c for c in candidates_data if c["decision"] == "Selected"]),
+            "hire_pooled": len([c for c in candidates_data if c["decision"] == "Hire-Pooled"]),
+            "rejected": len([c for c in candidates_data if c["decision"] == "Rejected"]),
+            "review_required": len([c for c in candidates_data if c["decision"] == "Review Required"])
+        },
+        "average_score": round(sum(c["scores"]["composite_score"] for c in candidates_data) / total_candidates, 2) if total_candidates > 0 else 0
+    }
+    
+    # Apply pagination
+    paginated_data = candidates_data[skip:skip + limit]
+    
+    return {
+        "statistics": stats,
+        "filters_applied": {
+            "tier_filter": tier_filter,
+            "status_filter": status_filter
+        },
+        "pagination": {
+            "total": total_candidates,
+            "showing": len(paginated_data),
+            "skip": skip,
+            "limit": limit
+        },
+        "candidates": paginated_data
+    }
