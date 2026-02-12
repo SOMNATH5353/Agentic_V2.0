@@ -303,21 +303,36 @@ Query: status_filter: string (optional)
 ### 4.1 Submit Application
 **Method**: `POST`  
 **Endpoint**: `/apply/{company_id}`  
-**Description**: Submit job application with resume PDF
+**Description**: Submit job application with resume PDF - automatically finds the job for the specified company
 
-**Input**:
-```
-Path: company_id: integer (required)
+**Path Parameters:**
+- `company_id`: integer (required) - The ID of the company you're applying to
 
-Multipart Form:
-job_id: integer (required) - Must belong to the specified company
-name: string (required)
-email: string (required)
-mobile: string (required)
-linkedin: string (optional)
-github: string (optional)
-experience: integer (required)
-resume_pdf: file (required, .pdf only)
+**Multipart Form Parameters:**
+- `name`: string (required) - Candidate's full name
+- `email`: string (required) - Candidate's email address
+- `mobile`: string (required) - Candidate's mobile number
+- `linkedin`: string (optional) - LinkedIn profile URL
+- `github`: string (optional) - GitHub profile URL
+- `experience`: integer (required) - Years of experience
+- `resume_pdf`: file (required, .pdf only) - Resume in PDF format
+
+**Example Request**:
+```python
+import requests
+
+with open("resume.pdf", "rb") as f:
+    response = requests.post(
+        "https://agentic-v2-0.onrender.com/apply/15",  # company_id = 15
+        data={
+            "name": "Arjun Malhotra",
+            "email": "arjun@example.com",
+            "mobile": "1234567890",
+            "experience": 2
+        },
+        files={"resume_pdf": f}
+    )
+print(response.json())
 ```
 
 **Output**:
@@ -325,7 +340,8 @@ resume_pdf: file (required, .pdf only)
 {
   "application_id": 101,
   "candidate_id": 42,
-  "job_id": 1,
+  "job_id": 10,
+  "company_id": 15,
   "decision": "Selected",
   "composite_score": 0.78,
   "explanation": {
@@ -340,24 +356,9 @@ resume_pdf: file (required, .pdf only)
 }
 ```
 
-**Python Example**:
-```python
-import requests
-
-with open("resume.pdf", "rb") as f:
-    response = requests.post(
-        "https://agentic-v2-0.onrender.com/apply/1",  # company_id = 1
-        data={
-            "job_id": 5,  # Must belong to company 1
-            "name": "Arjun Malhotra",
-            "email": "arjun@example.com",
-            "mobile": "1234567890",
-            "experience": 2
-        },
-        files={"resume_pdf": f}
-    )
-print(response.json())
-```
+**How It Works**:
+- If `job_id` is NOT in form data → Uses old format (path param is job_id)
+- If `job_id` IS in form data → Uses new format (path param is company_id with validation)
 
 ### 4.2 Get Application Details
 **Method**: `GET`  

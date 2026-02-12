@@ -16,7 +16,6 @@ router = APIRouter(prefix="/apply", tags=["Application"])
 @router.post("/{company_id}")
 async def apply(
     company_id: int,
-    job_id: int = Form(...),
     name: str = Form(...),
     email: str = Form(...),
     mobile: str = Form(...),
@@ -28,7 +27,9 @@ async def apply(
 ):
     """
     Submit job application by uploading resume as PDF
-    Path uses company_id for consistency, job_id specified in form data
+    
+    Endpoint: POST /apply/{company_id}
+    - Automatically finds the job associated with the company
     """
     # Validate PDF file
     if not resume_pdf.filename.endswith('.pdf'):
@@ -37,26 +38,20 @@ async def apply(
     # Verify company exists
     company = db.query(Company).filter(Company.id == company_id).first()
     if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+        raise HTTPException(status_code=404, detail=f"Company ID {company_id} not found")
     
-    # Get job details and validate it belongs to the company
-    job = db.query(Job).filter(Job.id == job_id).first()
+    # Find the job for this company
+    job = db.query(Job).filter(Job.company_id == company_id).first()
     
     if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    
-    if job.company_id != company_id:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Job ID {job_id} does not belong to Company ID {company_id}"
-        )
+        raise HTTPException(status_code=404, detail=f"No job found for Company ID {company_id}")
     
     # Check for duplicate email
     existing_candidate = db.query(Candidate).filter(Candidate.email == email).first()
     if existing_candidate:
         # Check if already applied to this job
         existing_application = db.query(Application).filter(
-            Application.job_id == job_id,
+            Application.job_id == job.id,
             Application.candidate_id == existing_candidate.id
         ).first()
         
@@ -112,7 +107,8 @@ async def apply(
     return {
         "application_id": application.id,
         "candidate_id": candidate.id,
-        "job_id": job_id,
+        "job_id": job.id,
+        "company_id": company_id,
         "decision": application.decision,
         "composite_score": application.composite_score,
         "explanation": application.explanation,
