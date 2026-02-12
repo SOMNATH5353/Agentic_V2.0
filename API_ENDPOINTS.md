@@ -2,12 +2,12 @@
 
 ## Base URL
 ```
-http://127.0.0.1:8000
+https://agentic-v2-0.onrender.com
 ```
 
 ## Interactive Documentation
-- **Swagger UI**: http://127.0.0.1:8000/docs
-- **ReDoc**: http://127.0.0.1:8000/redoc
+- **Swagger UI**: https://agentic-v2-0.onrender.com/docs
+- **ReDoc**: https://agentic-v2-0.onrender.com/redoc
 
 ---
 
@@ -83,10 +83,82 @@ description: string (required)
 
 ## 3. Job Endpoints
 
-### 3.1 Create Job Posting
+### 3.1 Create Job with Company (Merged Endpoint) ⭐ RECOMMENDED
+**Method**: `POST`  
+**Endpoint**: `/job/create-with-company`  
+**Description**: Create company and job posting in a single API call. If company exists, reuses it.
+
+**Input** (Multipart Form):
+```
+# Company Details
+company_name: string (required)
+company_description: string (required)
+
+# Job Details
+role: string (required)
+location: string (optional, default: "")
+salary: string (optional, default: "")
+employment_type: string (optional, default: "Full-time")
+required_experience: integer (required)
+jd_pdf: file (required, .pdf only)
+```
+
+**Output**:
+```json
+{
+  "company": {
+    "id": 1,
+    "name": "TechCorp",
+    "description": "Leading technology company",
+    "created_at": "2026-02-12T10:00:00",
+    "status": "created"
+  },
+  "job": {
+    "id": 1,
+    "company_id": 1,
+    "role": "Python Developer",
+    "location": "Remote",
+    "salary": "$80k-$120k",
+    "employment_type": "Full-time",
+    "required_experience": 0,
+    "created_at": "2026-02-12T10:00:00",
+    "jd_text_preview": "We are looking for...",
+    "embedding_dimensions": 768,
+    "skills_stored": 15
+  },
+  "message": "Company created and job created successfully",
+  "pages_parsed": 2,
+  "skills_extracted": ["python", "flask", "rest api", "..."],
+  "technical_skills": ["python", "flask", "sql", "git", "docker"],
+  "soft_skills": ["communication", "teamwork", "problem solving"]
+}
+```
+
+**Python Example**:
+```python
+import requests
+
+with open("job_description.pdf", "rb") as f:
+    response = requests.post(
+        "https://agentic-v2-0.onrender.com/job/create-with-company",
+        data={
+            "company_name": "TechCorp",
+            "company_description": "Leading technology company",
+            "role": "Python Developer",
+            "location": "Remote",
+            "salary": "$80k-$120k",
+            "employment_type": "Full-time",
+            "required_experience": 0
+        },
+        files={"jd_pdf": f}
+    )
+print(response.json())
+```
+
+### 3.2 Create Job Posting (Separate)
 **Method**: `POST`  
 **Endpoint**: `/job/`  
-**Description**: Create a new job by uploading JD PDF
+**Description**: Create a new job by uploading JD PDF (requires existing company_id)
 
 **Input** (Multipart Form):
 ```
@@ -123,7 +195,7 @@ jd_pdf: file (required, .pdf only)
 }
 ```
 
-### 3.2 Get Job Details
+### 3.3 Get Job Details
 **Method**: `GET`  
 **Endpoint**: `/job/{job_id}`  
 **Description**: Get detailed job information
@@ -154,7 +226,7 @@ job_id: integer (required)
 }
 ```
 
-### 3.3 List Jobs
+### 3.4 List Jobs
 **Method**: `GET`  
 **Endpoint**: `/job/`  
 **Description**: Browse available jobs with filters
@@ -193,7 +265,7 @@ limit: integer (optional, default: 100)
 }
 ```
 
-### 3.4 Get Job Applications
+### 3.5 Get Job Applications
 **Method**: `GET`  
 **Endpoint**: `/job/{job_id}/applications`  
 **Description**: Get all applications for a specific job
@@ -857,13 +929,13 @@ candidate_id: integer (required)
 
 ## Summary by Category
 
-### Total Endpoints: 28
+### Total Endpoints: 29
 
 | Category | Count | Endpoints |
 |----------|-------|-----------|
 | Root & Health | 2 | `/`, `/health` |
 | Company | 1 | `POST /company/` |
-| Job | 4 | `POST /job/`, `GET /job/{id}`, `GET /job/`, `GET /job/{id}/applications` |
+| Job | 5 | `POST /job/create-with-company` ⭐, `POST /job/`, `GET /job/{id}`, `GET /job/`, `GET /job/{id}/applications` |
 | Application | 4 | `POST /apply/{job_id}`, `GET /apply/{id}`, `GET /apply/{id}/history`, `GET /apply/` |
 | Candidate | 5 | `GET /candidate/{id}`, `GET /candidate/{id}/applications`, `GET /candidate/{id}/history`, `GET /candidate/search/by-email`, `GET /candidate/` |
 | Analytics | 7 | XAI, Skill Gap, Skill Graph, Rankings, Top Candidates, Statistics, Candidate Applications |
@@ -914,7 +986,7 @@ Currently: **None**
 
 ## Testing the API
 
-1. **Using Swagger UI**: Visit http://127.0.0.1:8000/docs
+1. **Using Swagger UI**: Visit https://agentic-v2-0.onrender.com/docs
 2. **Using cURL**: See example commands in each endpoint section
 3. **Using Postman**: Import OpenAPI spec from `/openapi.json`
 4. **Using Python requests**:
@@ -924,7 +996,7 @@ import requests
 
 # Create company
 response = requests.post(
-    "http://127.0.0.1:8000/company/",
+    "https://agentic-v2-0.onrender.com/company/",
     params={"name": "TechCorp", "description": "Tech company"}
 )
 print(response.json())
@@ -932,7 +1004,7 @@ print(response.json())
 # Create job
 with open("job_description.pdf", "rb") as f:
     response = requests.post(
-        "http://127.0.0.1:8000/job/",
+        "https://agentic-v2-0.onrender.com/job/",
         data={
             "company_id": 1,
             "role": "Python Developer",
@@ -948,7 +1020,7 @@ print(response.json())
 # Apply for job
 with open("resume.pdf", "rb") as f:
     response = requests.post(
-        "http://127.0.0.1:8000/apply/1",
+        "https://agentic-v2-0.onrender.com/apply/1",
         data={
             "name": "Arjun Malhotra",
             "email": "arjun@example.com",
