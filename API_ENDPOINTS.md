@@ -560,6 +560,234 @@ limit: integer (optional, default: 100)
 }
 ```
 
+### 5.6 Get Candidate Master Details 🆕
+**Method**: `GET`  
+**Endpoint**: `/candidate/{candidate_id}/master`  
+**Description**: Comprehensive master endpoint returning complete candidate profile with all applications, scores, decisions, and detailed analysis
+
+**Input** (Path Parameter):
+```
+candidate_id: integer (required)
+```
+
+**Output**:
+```json
+{
+  "candidate_profile": {
+    "candidate_id": 42,
+    "name": "Arjun Malhotra",
+    "email": "arjun@example.com",
+    "mobile": "+91-9876543210",
+    "linkedin": "linkedin.com/in/arjun",
+    "github": "github.com/arjun",
+    "years_of_experience": 2,
+    "skills": ["Python", "Flask", "SQL", "Docker", "REST APIs"],
+    "resume_text": "Full resume text content...",
+    "profile_created_at": "2026-02-01T10:00:00"
+  },
+  "application_summary": {
+    "total_applications": 10,
+    "selected": 3,
+    "rejected": 5,
+    "pending": 2,
+    "average_composite_score": 78.5,
+    "best_application": {
+      "application_id": 101,
+      "job_role": "Senior Python Developer",
+      "composite_score": 92.3,
+      "decision": "Selected",
+      "rank": 1
+    }
+  },
+  "applications": [
+    {
+      "application_id": 101,
+      "applied_at": "2026-02-10T14:30:00",
+      "status": "evaluated",
+      "job_details": {
+        "job_id": 25,
+        "role": "Senior Python Developer",
+        "location": "Bangalore, India",
+        "salary": "₹15-20 LPA",
+        "employment_type": "Full-time",
+        "required_experience": 3,
+        "job_description": "We are seeking a talented Python developer...",
+        "required_skills": ["Python", "Django", "PostgreSQL", "Docker", "AWS"]
+      },
+      "company_details": {
+        "company_id": 5,
+        "company_name": "Tech Innovations Ltd",
+        "company_description": "Leading software development company..."
+      },
+      "scores": {
+        "role_fit_score": 88.5,
+        "domain_competency_score": 92.0,
+        "experience_level_compatibility": 95.0,
+        "composite_score": 92.3,
+        "rank": 1,
+        "rank_description": "Ranked #1"
+      },
+      "decision": {
+        "status": "Selected",
+        "reason": "Excellent technical skills with strong Python expertise and relevant experience",
+        "detailed_explanation": {
+          "strengths": [
+            "Strong Python and Flask experience",
+            "Good understanding of databases",
+            "Experience with REST APIs"
+          ],
+          "concerns": [],
+          "recommendations": "Proceed with interview"
+        }
+      },
+      "fraud_detection": {
+        "fraud_flag": false,
+        "similarity_index": 0.15,
+        "fraud_details": null
+      },
+      "skill_analysis": {
+        "skill_match": {
+          "matched_skills": ["Python", "SQL"],
+          "missing_skills": ["Django", "AWS"],
+          "match_percentage": 60.0
+        },
+        "experience_details": {
+          "candidate_years": 2,
+          "required_years": 3,
+          "compatibility": "good"
+        }
+      }
+    }
+  ]
+}
+```
+
+**Features**:
+- Complete candidate profile with all personal details
+- Skills extracted from resume
+- Summary statistics (total applications, selection rate, average scores)
+- Best performing application highlight
+- Detailed breakdown of each application including:
+  - Full job and company information
+  - All scoring metrics (RFS, DCS, ELC, Composite)
+  - Ranking position
+  - Selection/rejection decision with reasoning
+  - Fraud detection results
+  - Skill match analysis
+
+**Use Cases**:
+- HR dashboard for comprehensive candidate review
+- Candidate performance tracking across multiple applications
+- Export candidate data for reporting and analytics
+- Audit trail and compliance documentation
+- Application history visualization
+
+### 5.7 Get All Candidates Master Details 🆕
+**Method**: `GET`  
+**Endpoint**: `/candidate/master/all`  
+**Description**: Comprehensive master endpoint returning complete details for ALL candidates with pagination. Each candidate includes full profile, applications, scores, and decisions.
+
+**Input** (Query Parameters):
+```
+skip: integer (optional, default: 0) - Number of candidates to skip
+limit: integer (optional, default: 100, max: 500) - Maximum candidates to return
+```
+
+**Output**:
+```json
+{
+  "total_candidates": 250,
+  "showing": 100,
+  "skip": 0,
+  "limit": 100,
+  "global_statistics": {
+    "total_applications": 523,
+    "total_selected": 145,
+    "total_rejected": 298,
+    "total_pending": 80
+  },
+  "candidates": [
+    {
+      "candidate_profile": {
+        "candidate_id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "mobile": "+1234567890",
+        "linkedin": "linkedin.com/in/johndoe",
+        "github": "github.com/johndoe",
+        "years_of_experience": 5,
+        "skills": ["Python", "JavaScript", "React"],
+        "resume_text": "Full resume...",
+        "profile_created_at": "2026-01-15T10:00:00"
+      },
+      "application_summary": {
+        "total_applications": 8,
+        "selected": 2,
+        "rejected": 4,
+        "pending": 2,
+        "average_composite_score": 75.5,
+        "best_application": {
+          "application_id": 25,
+          "job_role": "Senior Developer",
+          "composite_score": 89.5,
+          "decision": "Selected",
+          "rank": 1
+        }
+      },
+      "applications": [
+        {
+          "application_id": 25,
+          "applied_at": "2026-02-10T14:30:00",
+          "status": "evaluated",
+          "job_details": { },
+          "company_details": { },
+          "scores": { },
+          "decision": { },
+          "fraud_detection": { },
+          "skill_analysis": { }
+        }
+      ]
+    },
+    {
+      "candidate_profile": { },
+      "application_summary": { },
+      "applications": [ ]
+    }
+  ]
+}
+```
+
+**Features**:
+- Returns complete data for all candidates in the system
+- Pagination support to handle large datasets (max 500 per request)
+- Global statistics across all candidates shown
+- Each candidate includes:
+  - Complete profile information
+  - All applications with full details
+  - Summary statistics
+  - Best application highlight
+- Same detailed application data as single candidate endpoint
+
+**Use Cases**:
+- Admin dashboard showing all candidates
+- Bulk data export for HR analytics
+- System-wide reporting and statistics
+- Candidate comparison and benchmarking
+- Mass data processing and analysis
+- Complete database backup/export
+
+**Pagination Example**:
+```
+# Get first 50 candidates
+GET /candidate/master/all?limit=50
+
+# Get next 50 candidates
+GET /candidate/master/all?skip=50&limit=50
+
+# Get all candidates (up to 500)
+GET /candidate/master/all?limit=500
+```
+
 ---
 
 ## 6. Analytics Endpoints

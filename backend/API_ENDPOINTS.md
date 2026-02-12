@@ -227,3 +227,217 @@ This will add:
 - `mobile` column to `candidates` table
 - `location` column to `jobs` table
 - `employment_type` column to `jobs` table
+
+---
+
+## Candidate Master Endpoint
+
+### Get Complete Candidate Profile
+**Endpoint:** `GET /candidate/{candidate_id}/master`
+
+**Description:** 
+This is a comprehensive master endpoint that returns all details about a candidate including:
+- Complete personal information (name, email, mobile, LinkedIn, GitHub, experience)
+- All skills extracted from resume
+- Complete list of all job applications
+- For each application:
+  - Full job details (role, location, salary, job description, required skills)
+  - Company information
+  - All scores (Role Fit Score, Domain Competency Score, Experience Level Compatibility, Composite Score)
+  - Ranking among all applicants
+  - Decision status (Selected/Rejected/Pending)
+  - Decision reasoning and detailed explanation
+  - Fraud detection information
+  - Skill match analysis
+  - Application status
+
+**Example Request:**
+```
+GET /candidate/1/master
+```
+
+**Example Response:**
+```json
+{
+  "candidate_profile": {
+    "candidate_id": 1,
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "mobile": "+1234567890",
+    "linkedin": "https://linkedin.com/in/johndoe",
+    "github": "https://github.com/johndoe",
+    "years_of_experience": 5,
+    "skills": ["Python", "JavaScript", "React", "Node.js", "SQL"],
+    "resume_text": "Full resume text...",
+    "profile_created_at": "2026-01-15T10:00:00"
+  },
+  "application_summary": {
+    "total_applications": 10,
+    "selected": 3,
+    "rejected": 5,
+    "pending": 2,
+    "average_composite_score": 78.5,
+    "best_application": {
+      "application_id": 5,
+      "job_role": "Senior Python Developer",
+      "composite_score": 92.3,
+      "decision": "Selected",
+      "rank": 1
+    }
+  },
+  "applications": [
+    {
+      "application_id": 5,
+      "applied_at": "2026-02-10T14:30:00",
+      "status": "evaluated",
+      "job_details": {
+        "job_id": 10,
+        "role": "Senior Python Developer",
+        "location": "New York, NY",
+        "salary": "$120k-150k",
+        "employment_type": "Full-time",
+        "required_experience": 5,
+        "job_description": "We are looking for...",
+        "required_skills": ["Python", "Django", "PostgreSQL", "Docker"]
+      },
+      "company_details": {
+        "company_id": 2,
+        "company_name": "Tech Corp Inc",
+        "company_description": "Leading tech company..."
+      },
+      "scores": {
+        "role_fit_score": 88.5,
+        "domain_competency_score": 92.0,
+        "experience_level_compatibility": 95.0,
+        "composite_score": 92.3,
+        "rank": 1,
+        "rank_description": "Ranked #1"
+      },
+      "decision": {
+        "status": "Selected",
+        "reason": "Excellent match for the role with strong technical skills",
+        "detailed_explanation": {
+          "strengths": ["Strong Python expertise", "Relevant experience"],
+          "concerns": []
+        }
+      },
+      "fraud_detection": {
+        "fraud_flag": false,
+        "similarity_index": 0.15,
+        "fraud_details": null
+      },
+      "skill_analysis": {
+        "skill_match": {
+          "matched_skills": ["Python", "PostgreSQL"],
+          "missing_skills": ["Docker"]
+        },
+        "experience_details": {
+          "years": 5,
+          "relevance": "high"
+        }
+      }
+    }
+  ]
+}
+```
+
+**Use Cases:**
+- Complete candidate profile view for HR dashboard
+- Candidate's application history tracking
+- Performance analysis across multiple applications
+- Export candidate data for reporting
+- Comprehensive audit trail
+
+---
+
+## Candidate Master Endpoint - All Candidates
+
+### Get Complete Details for All Candidates
+**Endpoint:** `GET /candidate/master/all`
+
+**Query Parameters:**
+- `skip` (int, optional, default: 0): Number of candidates to skip for pagination
+- `limit` (int, optional, default: 100, max: 500): Maximum number of candidates to return
+
+**Description:**
+This endpoint returns comprehensive details for ALL candidates in the system with pagination support. For each candidate, it includes the same detailed information as the single candidate master endpoint.
+
+**Example Request:**
+```
+GET /candidate/master/all?skip=0&limit=50
+```
+
+**Example Response:**
+```json
+{
+  "total_candidates": 250,
+  "showing": 50,
+  "skip": 0,
+  "limit": 50,
+  "global_statistics": {
+    "total_applications": 523,
+    "total_selected": 145,
+    "total_rejected": 298,
+    "total_pending": 80
+  },
+  "candidates": [
+    {
+      "candidate_profile": {
+        "candidate_id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "mobile": "+1234567890",
+        "linkedin": "https://linkedin.com/in/johndoe",
+        "github": "https://github.com/johndoe",
+        "years_of_experience": 5,
+        "skills": ["Python", "JavaScript", "React", "Node.js"],
+        "resume_text": "Full resume text...",
+        "profile_created_at": "2026-01-15T10:00:00"
+      },
+      "application_summary": {
+        "total_applications": 10,
+        "selected": 3,
+        "rejected": 5,
+        "pending": 2,
+        "average_composite_score": 78.5,
+        "best_application": {
+          "application_id": 5,
+          "job_role": "Senior Python Developer",
+          "composite_score": 92.3,
+          "decision": "Selected",
+          "rank": 1
+        }
+      },
+      "applications": [
+        {
+          "application_id": 5,
+          "applied_at": "2026-02-10T14:30:00",
+          "status": "evaluated",
+          "job_details": { },
+          "company_details": { },
+          "scores": { },
+          "decision": { },
+          "fraud_detection": { },
+          "skill_analysis": { }
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Features:**
+- Returns all candidates with complete details
+- Pagination support (max 500 candidates per request)
+- Global statistics showing totals across all candidates
+- Each candidate includes full profile, applications, and analysis
+- Efficient for bulk data export and system-wide reporting
+
+**Use Cases:**
+- Admin dashboard with complete candidate database
+- Bulk export for HR analytics and reporting
+- System-wide statistics and insights
+- Candidate benchmarking and comparison
+- Data migration and backup
+- Mass processing and analysis
+
