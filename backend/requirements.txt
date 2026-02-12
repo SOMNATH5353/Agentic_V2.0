@@ -1,0 +1,31 @@
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+
+# Database
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Environment & Config
+python-dotenv==1.0.0
+
+# AI & ML
+requests==2.31.0
+numpy==1.26.3
+huggingface-hub==0.20.3
+
+# PDF Processing
+PyPDF2==3.0.1
+
+# File Upload
+python-multipart==0.0.6
+
+# Optional but Recommended
+# redis==5.0.1  # For caching
+# celery==5.3.4  # For background tasks
+# python-jose[cryptography]==3.3.0  # For JWT auth
+# passlib[bcrypt]==1.7.4  # For password hashing
+# slowapi==0.1.9  # For rate limiting
+# sentry-sdk[fastapi]==1.39.2  # For error tracking
