@@ -64,7 +64,7 @@ open $API_URL/docs
 | Variable | Value | Where to Get |
 |----------|-------|--------------|
 | `DATABASE_URL` | Auto-set by Render | Created automatically |
-| `HF_API_KEY` | Your HuggingFace token | [Get here](https://huggingface.co/settings/tokens) |
+| `HF_API_KEY` | `hf_YOUR_TOKEN_HERE` | [Get here](https://huggingface.co/settings/tokens) |
 | `SIMILARITY_THRESHOLD` | `0.90` | Default value |
 
 ---

@@ -41,7 +41,7 @@ git push -u origin main
 3. **Configure Environment Variables**:
    - Render will create both the web service and PostgreSQL database
    - You'll be prompted to add `HF_API_KEY`
-   - Add your HuggingFace API key: `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`
+   - Add your HuggingFace API key: `hf_YOUR_TOKEN_HERE`
 
 4. **Deploy**:
    - Click **"Apply"**
@@ -86,7 +86,7 @@ git push -u origin main
 4. **Add Environment Variables**:
    ```
    DATABASE_URL=<paste Internal Database URL from Step 1>
-   HF_API_KEY=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
+   HF_API_KEY=hf_YOUR_TOKEN_HERE
    SIMILARITY_THRESHOLD=0.90
    ENVIRONMENT=production
    LOG_LEVEL=INFO

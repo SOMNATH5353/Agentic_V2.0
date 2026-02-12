@@ -48,7 +48,7 @@ git push origin main
 5. Render will detect `render.yaml` automatically
 6. Add environment variable:
    - **Key**: `HF_API_KEY`
-   - **Value**: `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`
+   - **Value**: `hf_YOUR_TOKEN_HERE` (use your actual token)
 7. Click **"Apply"**
 
 #### Option B: Manual Docker Deploy
@@ -73,7 +73,7 @@ If Blueprint doesn't work, try manual setup:
 3. **Environment Variables**:
    ```
    DATABASE_URL=[copy from database internal connection string]
-   HF_API_KEY=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
+   HF_API_KEY=hf_YOUR_TOKEN_HERE
    SIMILARITY_THRESHOLD=0.90
    ENVIRONMENT=production
    LOG_LEVEL=INFO
