@@ -79,6 +79,7 @@
 | `GET` | `/analytics/fraud/{application_id}` | Get fraud detection analysis |
 | `GET` | `/analytics/company/{company_id}/dashboard` | Get company analytics dashboard |
 | `GET` | `/analytics/company/{company_id}/trends` | Get hiring trends over time |
+| `GET` | `/analytics/master-report/pdf` | 🆕 **Master PDF** - Generate comprehensive PDF report |
 
 ---
 
@@ -89,6 +90,7 @@
 2. **`GET /job/{job_id}/applications/ranked`** - View ranked applicants
 3. **`GET /analytics/application/{application_id}/xai`** - Understand AI decisions
 4. **`GET /analytics/company/{company_id}/dashboard`** - Company analytics
+5. **`GET /analytics/master-report/pdf`** - 🆕 **Download comprehensive PDF report**
 
 ### For Candidates:
 1. **`GET /job/`** - Browse available jobs
@@ -98,6 +100,7 @@
 
 ### For Admin/System:
 1. **`GET /candidate/master/all`** - Export all candidate data
+2. **`GET /analytics/master-report/pdf`** - 🆕 **Generate PDF report**
 2. **`GET /candidate/{candidate_id}/master`** - Complete candidate profile
 3. **`GET /analytics/company/{company_id}/trends`** - System analytics
 
@@ -314,7 +317,47 @@ response = requests.post("http://localhost:8000/apply/1", data=data, files=files
 ### Master Endpoints (Recently Added)
 - **`/candidate/{candidate_id}/master`** - Complete single candidate details
 - **`/candidate/master/all`** - Complete all candidates details with pagination
+- **`/analytics/master-report/pdf`** - 🆕 **PDF Report** - Comprehensive downloadable report
 
+### Master PDF Report Features
+The `/analytics/master-report/pdf` endpoint generates a comprehensive PDF containing:
+- ✅ Title page with report metadata
+- ✅ Executive summary with statistics
+- ✅ Top 5 performers ranking table
+- ✅ Individual candidate profiles
+- ✅ All applications with job/company details
+- ✅ Score visualizations (bar charts)
+- ✅ XAI explanations
+- ✅ Skill gap analysis
+- ✅ Skill match evidence
+- ✅ Fraud detection results
+- ✅ Rankings and decisions
+
+**Example Usage:**
+```bash
+# Download PDF report for first 20 candidates
+curl "http://localhost:8000/analytics/master-report/pdf?limit=20&skip=0" --output report.pdf
+
+# Using Python
+import requests
+response = requests.get("http://localhost:8000/analytics/master-report/pdf?limit=10")
+with open("candidates_report.pdf", "wb") as f:
+    f.write(response.content)
+```
+
+**Query Parameters:**
+- `limit` (int): Maximum candidates to include (default: 50, max: 100)
+- `skip` (int): Number of candidates to skip for pagination (default: 0)
+
+Perfect for:
+- HR executive reports
+- Management presentations
+- Stakeholder updates
+- Complete data exports
+- Audit documentation
+- Performance reviews
+
+### Master Data Endpoints
 These endpoints provide:
 - ✅ Complete candidate profiles
 - ✅ All applications with full details

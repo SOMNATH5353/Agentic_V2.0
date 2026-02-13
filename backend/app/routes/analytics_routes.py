@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from ..dependencies import get_db
@@ -6,7 +7,9 @@ from ..models.application import Application
 from ..models.candidate import Candidate
 from ..models.job import Job
 from ..models.company import Company
+from ..services.pdf_report_service import master_report_generator
 from typing import List, Dict, Any
+from io import BytesIO
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -515,3 +518,200 @@ def get_candidates_dashboard(
         },
         "candidates": paginated_data
     }
+
+
+@router.get("/master-report/pdf")
+def generate_master_pdf_report(
+    limit: int = 50,
+    skip: int = 0,
+    db: Session = Depends(get_db)
+):
+    """
+    🆕 MASTER PDF REPORT - Generate comprehensive PDF report for all candidates
+    
+    This endpoint generates a complete PDF report containing:
+    - Executive summary with statistics
+    - All candidate profiles
+    - Application rankings
+    - XAI explanations
+    - Skill gap analysis
+    - Skill match details
+    - Score visualizations
+    - Fraud detection results
+    
+    Query Parameters:
+    - limit: Maximum number of candidates to include (default: 50, max: 100)
+    - skip: Number of candidates to skip (default: 0)
+    
+    Returns:
+    - PDF file (application/pdf)
+    
+    Example:
+    GET /analytics/master-report/pdf?limit=20
+    """
+    # Limit the maximum
+    if limit > 100:
+        limit = 100
+    
+    # Get all candidates with pagination
+    all_candidates = db.query(Candidate).order_by(Candidate.created_at.desc()).offset(skip).limit(limit).all()
+    
+    if not all_candidates:
+        raise HTTPException(status_code=404, detail="No candidates found")
+    
+    # Build comprehensive data for each candidate
+    candidates_master_data = []
+    
+    for candidate in all_candidates:
+        # Get all applications for this candidate
+        applications = db.query(Application).filter(
+            Application.candidate_id == candidate.id
+        ).order_by(Application.composite_score.desc()).all()
+        
+        # Build application details with analytics
+        application_details = []
+        for app in applications:
+            job = db.query(Job).filter(Job.id == app.job_id).first()
+            company = None
+            if job:
+                company = db.query(Company).filter(Company.id == job.company_id).first()
+            
+            # Extract XAI explanation
+            full_explanation = app.explanation or {}
+            xai_explanation = full_explanation.get("xai_explanation", {})
+            skill_gap = full_explanation.get("skill_gap_analysis", {})
+            skill_graph = full_explanation.get("skill_evidence_graph", {})
+            
+            application_info = {
+                "application_id": app.id,
+                "applied_at": app.created_at.isoformat() if app.created_at else None,
+                "status": app.status,
+                
+                # Job Details
+                "job_details": {
+                    "job_id": job.id if job else None,
+                    "role": job.role if job else None,
+                    "location": job.location if job else None,
+                    "salary": job.salary if job else None,
+                    "employment_type": job.employment_type if job else None,
+                    "required_experience": job.required_experience if job else None,
+                    "company_name": company.name if company else None,
+                } if job else None,
+                
+                # Company Details
+                "company_details": {
+                    "company_id": company.id if company else None,
+                    "company_name": company.name if company else None,
+                    "company_description": company.description if company else None,
+                } if company else None,
+                
+                # Scores
+                "scores": {
+                    "role_fit_score": app.rfs,
+                    "domain_competency_score": app.dcs,
+                    "experience_level_compatibility": app.elc,
+                    "composite_score": app.composite_score,
+                    "rank": app.rank,
+                    "rank_description": f"Ranked #{app.rank}" if app.rank else "Not ranked yet"
+                },
+                
+                # Decision
+                "decision": {
+                    "status": app.decision if app.decision else "Pending",
+                    "reason": app.decision_reason,
+                    "detailed_explanation": app.explanation
+                },
+                
+                # Fraud Detection
+                "fraud_detection": {
+                    "fraud_flag": app.fraud_flag,
+                    "similarity_index": app.similarity_index,
+                    "fraud_details": app.fraud_details
+                },
+                
+                # Skill Analysis
+                "skill_analysis": {
+                    "skill_match": app.skill_match,
+                    "experience_details": app.experience_details
+                },
+                
+                # XAI Explanation
+                "xai_explanation": xai_explanation,
+                
+                # Skill Gap Analysis
+                "skill_gap_analysis": skill_gap,
+                
+                # Skill Evidence Graph
+                "skill_evidence_graph": skill_graph
+            }
+            
+            application_details.append(application_info)
+        
+        # Calculate summary statistics for this candidate
+        total_applications = len(applications)
+        selected_count = sum(1 for app in applications if app.decision == "Selected")
+        rejected_count = sum(1 for app in applications if app.decision == "Rejected")
+        pending_count = sum(1 for app in applications if not app.decision or app.decision == "Pending")
+        
+        avg_composite_score = None
+        if applications:
+            scores = [app.composite_score for app in applications if app.composite_score is not None]
+            if scores:
+                avg_composite_score = sum(scores) / len(scores)
+        
+        best_application = None
+        if applications:
+            scored_apps = [app for app in applications if app.composite_score is not None]
+            if scored_apps:
+                best_app = max(scored_apps, key=lambda x: x.composite_score)
+                best_job = db.query(Job).filter(Job.id == best_app.job_id).first()
+                best_application = {
+                    "application_id": best_app.id,
+                    "job_role": best_job.role if best_job else None,
+                    "composite_score": best_app.composite_score,
+                    "decision": best_app.decision,
+                    "rank": best_app.rank
+                }
+        
+        # Build master data for this candidate
+        candidate_master = {
+            "candidate_profile": {
+                "candidate_id": candidate.id,
+                "name": candidate.name,
+                "email": candidate.email,
+                "mobile": candidate.mobile,
+                "linkedin": candidate.linkedin,
+                "github": candidate.github,
+                "years_of_experience": candidate.experience,
+                "skills": candidate.skills_extracted.get("technical_skills", []) if candidate.skills_extracted else [],
+                "profile_created_at": candidate.created_at.isoformat() if candidate.created_at else None
+            },
+            
+            "application_summary": {
+                "total_applications": total_applications,
+                "selected": selected_count,
+                "rejected": rejected_count,
+                "pending": pending_count,
+                "average_composite_score": round(avg_composite_score, 2) if avg_composite_score else None,
+                "best_application": best_application
+            },
+            
+            "applications": application_details
+        }
+        
+        candidates_master_data.append(candidate_master)
+    
+    # Generate PDF
+    try:
+        pdf_buffer = master_report_generator.generate_master_report(candidates_master_data)
+        
+        # Return as streaming response
+        return StreamingResponse(
+            pdf_buffer,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=master_candidate_report_{skip}_{limit}.pdf"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")

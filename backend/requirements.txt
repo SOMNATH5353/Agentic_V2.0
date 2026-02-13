@@ -19,6 +19,11 @@ huggingface-hub>=0.26.0
 # PDF Processing
 PyPDF2==3.0.1
 
+# PDF Generation & Visualization
+reportlab==4.0.9
+matplotlib==3.8.2
+Pillow==10.2.0
+
 # File Upload
 python-multipart==0.0.6
 
